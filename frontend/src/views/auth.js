@@ -17,10 +17,19 @@ export async function render() {
           <label>Email</label>
           <input type="email" id="email" placeholder="exemplo@kima.ao" />
         </div>
-        <div class="input-group" style="margin-bottom: 0.5rem;">
+        
+        <div class="input-group" style="margin-bottom: 0.5rem; position: relative;">
           <label>Senha</label>
-          <input type="password" id="password" placeholder="••••••••" />
+          <div style="position: relative;">
+            <input type="password" id="password" placeholder="••••••••" style="width: 100%; padding-right: 40px;" />
+            <button id="btnViewPass" type="button" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--color-text-secondary); cursor: pointer; font-size: 1.1rem; padding: 5px;">👁️</button>
+          </div>
         </div>
+
+        <div id="forgotPassContainer" style="text-align: right; margin-bottom: 1rem;">
+          <a href="#" id="btnForgotPass" style="font-size: 0.8rem; color: var(--color-text-secondary); text-decoration: none;">Esqueceu a senha?</a>
+        </div>
+
         <p id="nameGroup" style="display: none; margin-bottom: 1rem;">
           <label style="font-size: 0.85rem; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">Nome (opcional)</label>
           <input type="text" id="nameInput" placeholder="Guerreiro" style="width: 100%; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); border: 1px solid var(--color-surface-light); background: var(--color-surface); color: var(--color-text-primary);" />
@@ -52,31 +61,75 @@ export async function afterRender() {
   const btnSubmit = document.getElementById('btnSubmit');
   const btnToggle = document.getElementById('btnToggle');
   const btnGuest = document.getElementById('btnGuest');
+  const btnViewPass = document.getElementById('btnViewPass');
+  const btnForgotPass = document.getElementById('btnForgotPass');
+  const passwordInput = document.getElementById('password');
   const errorMsg = document.getElementById('errorMsg');
   const nameGroup = document.getElementById('nameGroup');
+  const forgotPassContainer = document.getElementById('forgotPassContainer');
   let isRegister = false;
 
-  function showError(msg) {
+  function showError(msg, isSuccess = false) {
     errorMsg.textContent = msg;
     errorMsg.style.display = 'block';
+    if (isSuccess) {
+      errorMsg.style.color = 'var(--color-primary-light)';
+      errorMsg.style.borderLeftColor = 'var(--color-primary)';
+      errorMsg.style.background = 'rgba(46,125,50,0.1)';
+    } else {
+      errorMsg.style.color = 'var(--color-error)';
+      errorMsg.style.borderLeftColor = 'var(--color-error)';
+      errorMsg.style.background = 'rgba(239,83,80,0.1)';
+    }
   }
+
   function hideError() {
     errorMsg.style.display = 'none';
   }
 
+  // Toggle show/hide password
+  btnViewPass.addEventListener('click', () => {
+    const isPass = passwordInput.type === 'password';
+    passwordInput.type = isPass ? 'text' : 'password';
+    btnViewPass.textContent = isPass ? '🔒' : '👁️';
+  });
+
+  // Toggle Login/Register
   btnToggle.addEventListener('click', (e) => {
     e.preventDefault();
     isRegister = !isRegister;
     btnSubmit.textContent = isRegister ? 'Criar Conta' : 'Entrar';
     btnToggle.textContent = isRegister ? 'Já tem conta? Fazer login' : 'Não tem conta? Criar agora';
     nameGroup.style.display = isRegister ? 'block' : 'none';
+    forgotPassContainer.style.display = isRegister ? 'none' : 'block';
     hideError();
   });
 
+  // Forgot Password
+  btnForgotPass.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+      showError('Insira o seu email primeiro para recuperar a senha.');
+      return;
+    }
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/#/profile',
+      });
+      if (error) throw error;
+      showError('✅ Link de recuperação enviado para o seu email!', true);
+    } catch (err) {
+      showError(err.message);
+    }
+  });
+
+  // Submit
   btnSubmit.addEventListener('click', async () => {
     hideError();
     const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    const password = passwordInput.value;
     const name = document.getElementById('nameInput')?.value.trim() || email.split('@')[0];
 
     if (!email || !password) { showError('Preencha email e senha.'); return; }
@@ -88,18 +141,15 @@ export async function afterRender() {
       if (isRegister) {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // Create profile
         if (data.user) {
           await supabase.from('profiles').insert([{ id: data.user.id, name }]);
         }
-        showError('✅ Conta criada! Faça login agora.');
+        showError('✅ Conta criada! Verifique o seu email ou faça login.', true);
         isRegister = false;
         btnSubmit.textContent = 'Entrar';
         btnToggle.textContent = 'Não tem conta? Criar agora';
         nameGroup.style.display = 'none';
-        errorMsg.style.color = 'var(--color-primary-light)';
-        errorMsg.style.borderLeftColor = 'var(--color-primary)';
-        errorMsg.style.background = 'rgba(46,125,50,0.1)';
+        forgotPassContainer.style.display = 'block';
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
