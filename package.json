@@ -1,6 +1,7 @@
 {
   "name": "kima",
   "version": "1.0.0",
+  "main": "api/index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
