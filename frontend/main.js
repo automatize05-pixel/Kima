@@ -69,15 +69,19 @@ function renderNav(activePath) {
 }
 
 async function router() {
+  console.log('Router starting...');
   const hash = window.location.hash.slice(1) || '/';
   const path = hash.startsWith('/') ? hash : '/' + hash;
+  console.log('Current path:', path);
   const route = routes[path] || routes['/'];
   
   renderNav(path);
   appContainer.innerHTML = '<div class="text-center mt-4">A carregar...</div>';
   
   try {
+    console.log('Importing view module...');
     const viewModule = await route();
+    console.log('View module loaded, rendering...');
     appContainer.innerHTML = await viewModule.render();
     if (viewModule.afterRender) {
       await viewModule.afterRender();
