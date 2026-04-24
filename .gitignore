@@ -1,0 +1,16 @@
+# Kima - Dependencies
+node_modules/
+dist/
+
+# Environment variables - NEVER commit these!
+.env
+.env.local
+.env.production
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,21 @@
+{
+  "name": "Kima - Academia Mental Portátil",
+  "short_name": "Kima",
+  "description": "App de produtividade, disciplina e combate à procrastinação.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#2E7D32",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
