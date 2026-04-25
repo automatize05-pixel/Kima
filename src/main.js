@@ -96,6 +96,7 @@ window.addEventListener('hashchange', router);
 window.addEventListener('load', router);
 
 // Setup service worker for PWA
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then((registration) => {
@@ -105,3 +106,4 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+*/
